@@ -1,0 +1,11 @@
+
+
+experiment:
+  name: "twitter-disaster-classification"
+  tracking_uri: "data/mlflow/mlruns"
+  artifact_location: "./data/mlflow/mlartifacts"
+
+INGEST_CONFIG:
+    location: ["./data/raw/train.csv", "./data/raw/test.csv"]
+    using: csv
+    loader_method: load_file_as_dataframe

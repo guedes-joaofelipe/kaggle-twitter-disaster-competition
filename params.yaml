@@ -1,0 +1,7 @@
+target: "target"
+
+train:
+  model_name: RandomClassifier
+  model_params:
+    threshold: 0.5
+    random_state: 0

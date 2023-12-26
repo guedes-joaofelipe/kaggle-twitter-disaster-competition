@@ -1,0 +1,24 @@
+artifacts:
+  train-data:
+    path: data/raw/train.csv
+    type: dataset
+    desc: Initial Kaggle Train Dataset (raw data)
+  test-data:
+    path: data/raw/test.csv
+    type: dataset
+    desc: Initial Kaggle Test Dataset (raw data)
+
+stages:
+  preprocess:
+    foreach:
+        - train
+        - test
+    do:
+      cmd: python -m steps.preprocess --filepath data/raw/${item}.csv --dataset ${item}
+      deps:
+        - steps/preprocess.py
+        - data/raw/${item}.csv
+
+  train:
+    cmd: python -m steps.train --filepath data/preprocess/train.parquet
+  # evaluate: ... # stage 3 definition
