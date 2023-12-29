@@ -1,7 +1,10 @@
+import logging
 import os
 
 import mlflow
 import typer
+
+logging.basicConfig(level=logging.INFO)
 
 from src.constants import (
     PROJECT_EXPERIMENT_NAME,

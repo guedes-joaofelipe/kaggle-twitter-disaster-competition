@@ -1,8 +1,10 @@
+
 artifacts:
   train-data:
     path: data/raw/train.csv
     type: dataset
     desc: Initial Kaggle Train Dataset (raw data)
+
   test-data:
     path: data/raw/test.csv
     type: dataset
@@ -18,7 +20,23 @@ stages:
       deps:
         - steps/preprocess.py
         - data/raw/${item}.csv
+      outs:
+        - data/preprocess/${item}.parquet
 
   train:
-    cmd: python -m steps.train --filepath data/preprocess/train.parquet
+    cmd: python -m steps.train data/preprocess/train.parquet
+    always_changed: true
+    deps:
+      - data/preprocess/train.parquet
+    outs:
+      - data/train
+
+  test:
+    cmd: python -m steps.test data/preprocess/test.parquet
+    always_changed: true
+    deps:
+      - steps/test.py
+      - data/preprocess/test.parquet
+      - data/train
+
   # evaluate: ... # stage 3 definition

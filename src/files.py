@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pandas as pd
 
@@ -22,3 +23,9 @@ def save_dataset(df: pd.DataFrame, filepath: str):
         print("Creating folder", folder)
         os.mkdir(folder)
     return df.to_parquet(filepath)
+
+
+def remove_dir(dir: str):
+    if os.path.exists(dir):
+        print("Removing dir", dir)
+        shutil.rmtree(dir)

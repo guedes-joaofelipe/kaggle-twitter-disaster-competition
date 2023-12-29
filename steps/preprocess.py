@@ -26,12 +26,12 @@ def preprocess(filepath: str, dataset: str = "train"):
     )
     df["location"] = df["location"].fillna("")
     df.set_index("id", inplace=True)
-    ipdb.set_trace()
+    # ipdb.set_trace()
 
     output_filepath = os.path.join("./data/preprocess", f"{dataset}.parquet")
     files.save_dataset(df, output_filepath)
 
-    print("preprocess.run_id", mlflow.active_run())
+    print("preprocess.run_id", mlflow.active_run().info.run_id)
     mlflow.log_input(
         mlflow.data.from_pandas(df, source=output_filepath), context=dataset
     )

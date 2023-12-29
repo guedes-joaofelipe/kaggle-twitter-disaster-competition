@@ -14,7 +14,7 @@ def mlflow_run(wrapped_function):
         with mlflow.start_run(run_id=os.environ["MLFLOW_PARENT_RUN_ID"]) as parent_run:
             with mlflow.start_run(
                 run_name=wrapped_function.__name__,
-                tags={"MLFLOW_PARENT_RUN_ID": os.environ["MLFLOW_PARENT_RUN_ID"]},
+                tags=None,
                 nested=True,
             ) as child_run:
                 return wrapped_function(*args, **kwargs)

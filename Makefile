@@ -24,16 +24,16 @@ run:
 	python run.py
 
 
-# run_pipeline:
-# 	export MLFLOW_RUN_ID=`python run.py $(RUN_NAME)`; \
-	
-
 MLFLOW_HOST = 127.0.0.1
-MLFLOW_PORT = 7000
+MLFLOW_PORT = 5000
 MLFLOW_LOCAL_FOLDER = ./data/mlflow
 
 server:
 	mlflow server \
 	--host $(MLFLOW_HOST) \
 	--port $(MLFLOW_PORT) \
-	--backend-store-uri $(MLFLOW_LOCAL_FOLDER)
+	--backend-store-uri $(MLFLOW_LOCAL_FOLDER)/db \
+	--default-artifact-root $(MLFLOW_LOCAL_FOLDER)/artifacts
+
+clean:
+	dvc experiments remove -A
