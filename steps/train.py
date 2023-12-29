@@ -9,12 +9,12 @@ import typer
 from mlflow import MlflowClient
 from mlflow.entities.model_registry import RegisteredModel
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import KFold, cross_validate, train_test_split
+from sklearn.model_selection import cross_validate, train_test_split
 from sklearn.pipeline import Pipeline
 
 from src import files
+from src.decorators import mlflow_child_run, mlflow_run
 from src.models.utils import get_model
-from src.utils.mlflow_run_decorator import mlflow_run
 
 
 @mlflow_run
@@ -28,8 +28,6 @@ def train(filepath: str):
     X = df.drop(columns=params["target"])
 
     experiments_results = run_experiments(df, params, X, y)
-
-    # ver a funcao mlflow.evaluate
 
     mlflow.log_params(experiments_results["best_params"]["params"])
     mlflow.log_params(experiments_results["best_params"]["hyperopt"])
@@ -112,13 +110,14 @@ def objective(args, X, y, metrics: dict, cv: int = 3, n_jobs: int = -1):
         error_score=0.99,
     )
 
-    results = {
-        "loss": 1 - np.mean(scores["test_" + metrics["loss"]]),
-        "status": hopt.STATUS_OK,
-    }
+    results = {"loss": 1 - np.mean(scores["test_" + metrics["loss"]])}
 
     for metric_name, metric_values in scores.items():
         results[metric_name] = np.mean(metric_values)
+
+    mlflow.log_metrics(results)
+
+    results["status"] = hopt.STATUS_OK
 
     return results
 
@@ -142,17 +141,16 @@ def register_model(
         print("Exception:", str(e))
 
     active_run = mlflow.active_run()
-    parent_run = mlflow.get_parent_run(active_run.info.run_id)
+    # parent_run = mlflow.get_parent_run(active_run.info.run_id)
     output_folder = os.path.join(
-        parent_run.info.artifact_uri, params["train"]["model"]["name"]
+        active_run.info.artifact_uri, params["train"]["model"]["name"]
     )
     files.remove_dir(output_folder)
     signature = mlflow.models.infer_signature(X, y)
 
-    mlflow.sklearn.save_model(
+    mlflow.sklearn.log_model(
         sk_model=model,
-        # artifact_path=params["train"]["model"]["name"],
-        path=output_folder,
+        artifact_path=params["train"]["model"]["name"],
         signature=signature,
         input_example=X.head(),
         pyfunc_predict_fn="predict",
@@ -162,7 +160,7 @@ def register_model(
     model_info = client.create_model_version(
         name=model.name,
         source=output_folder,
-        run_id=parent_run.info.run_id,
+        run_id=active_run.info.run_id,
         tags=params["train"]["version"]["tags"],
         description=params["train"]["version"]["description"],
     )
@@ -171,10 +169,5 @@ def register_model(
     os.makedirs("data/train", exist_ok=True)
 
 
-# adsad
-
 if __name__ == "__main__":
     typer.run(train)
-
-
-# kaggle competitions submit -c nlp-getting-started -f submission.csv -m "Message"

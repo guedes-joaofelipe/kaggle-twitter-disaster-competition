@@ -16,7 +16,7 @@ stages:
         - train
         - test
     do:
-      cmd: python -m steps.preprocess --filepath data/raw/${item}.csv --dataset ${item}
+      cmd: python -m steps.preprocess data/raw/${item}.csv ${item}
       deps:
         - steps/preprocess.py
         - data/raw/${item}.csv
@@ -29,6 +29,12 @@ stages:
     deps:
       - data/preprocess/train.parquet
     outs:
+      - data/train
+
+  evaluate:
+    cmd: python -m steps.evaluate data/preprocess/valid.parquet
+    always_changed: true
+    deps:
       - data/train
 
   test:

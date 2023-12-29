@@ -13,12 +13,16 @@ from src.constants import (
 )
 
 
-def start_pipeline():
+def start_pipeline(model_name):
     mlflow.set_tracking_uri(PROJECT_TRACKING_URI)
-    mlflow.set_experiment(PROJECT_EXPERIMENT_NAME)
+    mlflow.set_experiment(model_name)
     with mlflow.start_run():
         mlflow.log_artifact(os.path.join(PROJECT_ROOT_PATH, "dvc.yaml"))
-        cmd = f"export MLFLOW_PARENT_RUN_ID={mlflow.active_run().info.run_id} && dvc experiments run --name {mlflow.active_run().info.run_name}"
+        cmd = f"""
+            export MLFLOW_EXPERIMENT_NAME={model_name} &&
+            export MLFLOW_PARENT_RUN_ID={mlflow.active_run().info.run_id} &&
+            dvc experiments run --name {mlflow.active_run().info.run_name}
+        """
         os.system(cmd)
 
 

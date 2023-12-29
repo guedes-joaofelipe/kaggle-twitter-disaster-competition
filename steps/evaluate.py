@@ -10,9 +10,8 @@ from src.decorators import mlflow_run
 
 
 @mlflow_run
-def test(filepath: str):
+def evaluate(filepath: str):
     df = files.load_dataset(filepath)
-    mlflow.log_input(mlflow.data.from_pandas(df, source=filepath), context="test")
 
     active_run = mlflow.active_run()
     # parent_run = mlflow.get_parent_run(active_run.info.run_id)
@@ -23,14 +22,20 @@ def test(filepath: str):
     )
 
     model = mlflow.sklearn.load_model(model_uri)
-    df_predictions = pd.DataFrame(index=df.index)
-    df_predictions["target"] = model.predict(df)
-    predictions_filepath = os.path.join(
-        params["test"]["path"], f"{active_run.info.run_name}.csv"
+
+    df["prediction"] = model.predict(df)
+
+    def fn(X):
+        return model.predict(X)
+
+    evaluation = mlflow.evaluate(
+        data=df,
+        model=None,
+        targets="target",
+        predictions="prediction",
+        model_type="classifier",
     )
-    files.save_dataset(df_predictions, predictions_filepath)
-    mlflow.log_artifact(predictions_filepath, artifact_path="predictions")
 
 
 if __name__ == "__main__":
-    typer.run(test)
+    typer.run(evaluate)

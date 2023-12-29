@@ -1,3 +1,10 @@
+MODEL_NAME = RandomClassifier
+
+MLFLOW_HOST = 127.0.0.1
+MLFLOW_PORT = 5000
+MLFLOW_LOCAL_FOLDER = ./data/mlflow
+
+
 download:
 	kaggle competitions download \
 	-c nlp-getting-started \
@@ -21,12 +28,7 @@ test:
 
 
 run:
-	python run.py
-
-
-MLFLOW_HOST = 127.0.0.1
-MLFLOW_PORT = 5000
-MLFLOW_LOCAL_FOLDER = ./data/mlflow
+	python run.py $(MODEL_NAME)
 
 server:
 	mlflow server \
@@ -39,4 +41,4 @@ clean:
 	dvc experiments remove -A
 
 submit:
-	python -m steps.submit RandomClassifier 8
+	python -m steps.submit RandomClassifier 3

@@ -6,6 +6,11 @@ metrics:
     - "precision"
     - "recall"
 
+preprocess:
+  random_state: 0
+  split:
+    shuffle: true
+
 train:
   model:
     name: RandomClassifier
@@ -21,6 +26,9 @@ train:
     cross_validation: 3
     max_evals: 5
     n_jobs: -1
+
+evaluate:
+  valid_size: 0.2
 
 test:
   path: "data/test"
