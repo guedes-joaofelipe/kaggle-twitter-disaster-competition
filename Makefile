@@ -37,3 +37,6 @@ server:
 
 clean:
 	dvc experiments remove -A
+
+submit:
+	python -m steps.submit RandomClassifier 8

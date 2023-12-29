@@ -22,6 +22,7 @@ def train(filepath: str):
     params = dvc.api.params_show()
 
     df = files.load_dataset(filepath)
+    mlflow.log_input(mlflow.data.from_pandas(df, source=filepath), context="train")
 
     y = df[params["target"]]
     X = df.drop(columns=params["target"])
@@ -174,3 +175,6 @@ def register_model(
 
 if __name__ == "__main__":
     typer.run(train)
+
+
+# kaggle competitions submit -c nlp-getting-started -f submission.csv -m "Message"

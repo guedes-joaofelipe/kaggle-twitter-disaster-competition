@@ -66,5 +66,5 @@ stages:
       nfiles: 0
     - path: steps/test.py
       hash: md5
-      md5: 5fb4fa8235732ed71f26cb0e2da617e2
-      size: 2329
+      md5: 064defe785572ec77910b24406b7f3be
+      size: 1096

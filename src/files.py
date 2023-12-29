@@ -22,7 +22,18 @@ def save_dataset(df: pd.DataFrame, filepath: str):
     if not os.path.exists(folder):
         print("Creating folder", folder)
         os.mkdir(folder)
-    return df.to_parquet(filepath)
+
+    extension = get_file_extension(filepath)
+    if extension == "csv":
+        df.to_csv(filepath)
+    elif extension == "parquet":
+        df.to_parquet(filepath)
+    else:
+        raise NotImplementedError("Accepted file extensions: csv, parquet")
+
+
+def get_file_extension(filepath: str) -> str:
+    return filepath.split(".")[-1]
 
 
 def remove_dir(dir: str):

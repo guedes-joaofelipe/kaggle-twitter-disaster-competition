@@ -23,4 +23,4 @@ train:
     n_jobs: -1
 
 test:
-  predictions_path: "data/test/predictions.parquet"
+  path: "data/test"

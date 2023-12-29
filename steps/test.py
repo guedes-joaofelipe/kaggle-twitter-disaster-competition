@@ -28,8 +28,10 @@ def test(filepath: str):
 
     model = mlflow.sklearn.load_model(model_uri)
     df_predictions = pd.DataFrame(index=df.index)
-    df_predictions["predictions"] = model.predict(df)
-    predictions_filepath = params["test"]["predictions_path"]
+    df_predictions["target"] = model.predict(df)
+    predictions_filepath = os.path.join(
+        params["test"]["path"], f"{parent_run.info.run_name}.csv"
+    )
     files.save_dataset(df_predictions, predictions_filepath)
     mlflow.log_artifact(predictions_filepath, artifact_path="predictions")
 
