@@ -1,0 +1,78 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python -m steps.preprocess --file data/raw/train.csv --train
+    deps:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: f147942c91d00d754503775341d13682
+      size: 987712
+  preprocess@train:
+    cmd: python -m steps.preprocess data/raw/train.csv train
+    deps:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: f147942c91d00d754503775341d13682
+      size: 987712
+    - path: steps/preprocess.py
+      hash: md5
+      md5: 43e426eea3a1f619c8c64c5777b9d328
+      size: 1506
+    outs:
+    - path: data/preprocess/train.parquet
+      hash: md5
+      md5: 123509bdc5bfd6d157d9049fad833263
+      size: 631844
+  preprocess@test:
+    cmd: python -m steps.preprocess data/raw/test.csv test
+    deps:
+    - path: data/raw/test.csv
+      hash: md5
+      md5: ff248529f207ea164d73636e5b1b251d
+      size: 420783
+    - path: steps/preprocess.py
+      hash: md5
+      md5: 43e426eea3a1f619c8c64c5777b9d328
+      size: 1506
+    outs:
+    - path: data/preprocess/test.parquet
+      hash: md5
+      md5: 980a8aa378741cdaace6f30cbc63ccf2
+      size: 323834
+  train:
+    cmd: python -m steps.train data/preprocess/train.parquet
+    deps:
+    - path: data/preprocess/train.parquet
+      hash: md5
+      md5: 123509bdc5bfd6d157d9049fad833263
+      size: 631844
+    outs:
+    - path: data/train
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+  test:
+    cmd: python -m steps.test data/preprocess/test.parquet
+    deps:
+    - path: data/preprocess/test.parquet
+      hash: md5
+      md5: 980a8aa378741cdaace6f30cbc63ccf2
+      size: 323834
+    - path: data/train
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+    - path: steps/test.py
+      hash: md5
+      md5: 1cdbc8606673020ad4576b97b9d580a6
+      size: 987
+  evaluate:
+    cmd: python -m steps.evaluate data/preprocess/valid.parquet
+    deps:
+    - path: data/train
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
