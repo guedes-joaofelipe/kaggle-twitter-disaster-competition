@@ -1,0 +1,34 @@
+target: "target"
+
+metrics:
+  loss: "f1"
+  auxiliary:
+    - "precision"
+    - "recall"
+
+preprocess:
+  random_state: 0
+  split:
+    shuffle: true
+
+train:
+  model:
+    name: RandomClassifier
+    params:
+      threshold: 0.5
+      random_state: 0
+    path: data/train
+  version:
+    tags:
+      status: validation
+    description: Validating framework
+  hyperopt:
+    cross_validation: 3
+    max_evals: 5
+    n_jobs: -1
+
+evaluate:
+  valid_size: 0.2
+
+test:
+  path: "data/test"

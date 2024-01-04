@@ -17,7 +17,6 @@ stages:
         - test
     do:
       cmd: python -m steps.preprocess data/raw/${item}.csv ${item}
-      # always_changed: true
       deps:
         - steps/preprocess.py
         - data/raw/${item}.csv

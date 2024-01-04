@@ -11,11 +11,11 @@ from src.decorators import mlflow_run
 
 @mlflow_run
 def evaluate(filepath: str):
+    params = dvc.api.params_show()
     df = files.load_dataset(filepath)
+    df = df[[params["target"]] + params["features"]]
 
     active_run = mlflow.active_run()
-    # parent_run = mlflow.get_parent_run(active_run.info.run_id)
-    params = dvc.api.params_show()
 
     model_uri = os.path.join(
         active_run.info.artifact_uri, params["train"]["model"]["name"]
@@ -23,7 +23,7 @@ def evaluate(filepath: str):
 
     model = mlflow.sklearn.load_model(model_uri)
 
-    df["prediction"] = model.predict(df)
+    df["prediction"] = model.predict(df[params["features"]])
 
     def fn(X):
         return model.predict(X)

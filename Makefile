@@ -1,4 +1,4 @@
-MODEL_NAME = RandomClassifier
+MODEL_NAME = LogisticRegressionClassifier
 
 MLFLOW_HOST = 127.0.0.1
 MLFLOW_PORT = 5000
@@ -41,4 +41,4 @@ clean:
 	dvc experiments remove -A
 
 submit:
-	python -m steps.submit RandomClassifier 3
+	python -m steps.submit LogisticRegressionClassifier 12

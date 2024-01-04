@@ -1,6 +1,10 @@
+from src.models.logistic_regression import LogisticRegressionClassifier
 from src.models.random import RandomClassifier
 
-MODELS = {"RandomClassifier": RandomClassifier}
+MODELS = {
+    "RandomClassifier": RandomClassifier,
+    "LogisticRegressionClassifier": LogisticRegressionClassifier,
+}
 
 
 def get_model(model_name: str):

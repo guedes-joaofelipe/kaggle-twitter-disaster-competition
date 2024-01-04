@@ -11,12 +11,13 @@ from src.decorators import mlflow_run
 
 @mlflow_run
 def test(filepath: str):
+    params = dvc.api.params_show()
     df = files.load_dataset(filepath)
+    df = df[params["features"]]
+
     mlflow.log_input(mlflow.data.from_pandas(df, source=filepath), context="test")
 
     active_run = mlflow.active_run()
-    # parent_run = mlflow.get_parent_run(active_run.info.run_id)
-    params = dvc.api.params_show()
 
     model_uri = os.path.join(
         active_run.info.artifact_uri, params["train"]["model"]["name"]
