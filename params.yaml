@@ -1,4 +1,5 @@
 target: "target"
+features: ["text_clean", "n_profile_tags", "n_hash_tags", "n_link_tags", "exclamation_count", "question_count", "with_location"]
 
 metrics:
   loss: "f1"
@@ -13,19 +14,26 @@ preprocess:
 
 train:
   model:
-    name: RandomClassifier
+    name: LogisticRegressionClassifier
     params:
-      threshold: 0.5
       random_state: 0
     path: data/train
+  preprocessor:
+    vectorizer_name: tfidf
   version:
     tags:
       status: validation
     description: Validating framework
   hyperopt:
-    cross_validation: 3
-    max_evals: 5
+    cross_validation: 5
+    max_evals: 30
     n_jobs: -1
+    space:
+      model__C: hp.choice('C', np.arange(0.005,1.0,0.01))
+      model__solver: hp.choice('solver', ['lbfgs', 'liblinear', 'newton-cg', 'sag', 'saga'])
+      model__random_state: hp.choice('random_state', [0])
+      model__max_iter: hp.choice('max_iter', np.arange(100, 2000, 100))
+
 
 evaluate:
   valid_size: 0.2

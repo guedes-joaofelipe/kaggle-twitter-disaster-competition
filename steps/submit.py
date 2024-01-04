@@ -44,7 +44,7 @@ def submit(model_name: str, version: str):
     parent_run = mlflow.get_run(model.run_id)
 
     submission_filename = f"{parent_run.info.run_name}.csv"
-    submission_filename = "hilarious-ram-130.csv"
+    # submission_filename = "hilarious-ram-130.csv"
 
     df = get_submissions(submission_filename)
 
@@ -55,7 +55,7 @@ def submit(model_name: str, version: str):
             f"Submission {submission_filename} already exists. Force submission: "
         )
 
-    if False:  # df.shape[0] == 0 or force_submission.startswith("y"):
+    if df.shape[0] == 0 or force_submission.startswith("y"):
         if force_submission:
             print("Forcing submission")
         test_run = get_test_run(parent_run)
@@ -87,9 +87,6 @@ def submit(model_name: str, version: str):
     with mlflow.start_run(run_id=parent_run.info.run_id):
         mlflow.log_artifact(local_path=output_filepath, artifact_path="submission")
         mlflow.log_metric("public_score", df["publicScore"].astype(float).values[0])
-
-        mlflow.log_dict(dictionary=df.to_dict(), artifact_file=f"submission.json")
-        mlflow.log_table(artifact_file=f"submission.json")
 
 
 def get_submissions(filename: str) -> pd.DataFrame:

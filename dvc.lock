@@ -16,13 +16,13 @@ stages:
       size: 987712
     - path: steps/preprocess.py
       hash: md5
-      md5: 43e426eea3a1f619c8c64c5777b9d328
-      size: 1506
+      md5: f3f84e7ea3a4a9840538ca539cbb9f17
+      size: 2309
     outs:
     - path: data/preprocess/train.parquet
       hash: md5
-      md5: 123509bdc5bfd6d157d9049fad833263
-      size: 631844
+      md5: cc006276eedf79743a7e75b6544df4d9
+      size: 1150165
   preprocess@test:
     cmd: python -m steps.preprocess data/raw/test.csv test
     deps:
@@ -32,20 +32,20 @@ stages:
       size: 420783
     - path: steps/preprocess.py
       hash: md5
-      md5: 43e426eea3a1f619c8c64c5777b9d328
-      size: 1506
+      md5: f3f84e7ea3a4a9840538ca539cbb9f17
+      size: 2309
     outs:
     - path: data/preprocess/test.parquet
       hash: md5
-      md5: 980a8aa378741cdaace6f30cbc63ccf2
-      size: 323834
+      md5: af3c2b295814fe159ff2d6f18cb6c8b3
+      size: 605847
   train:
     cmd: python -m steps.train data/preprocess/train.parquet
     deps:
     - path: data/preprocess/train.parquet
       hash: md5
-      md5: 123509bdc5bfd6d157d9049fad833263
-      size: 631844
+      md5: cc006276eedf79743a7e75b6544df4d9
+      size: 1150165
     outs:
     - path: data/train
       hash: md5
@@ -57,8 +57,8 @@ stages:
     deps:
     - path: data/preprocess/test.parquet
       hash: md5
-      md5: 980a8aa378741cdaace6f30cbc63ccf2
-      size: 323834
+      md5: af3c2b295814fe159ff2d6f18cb6c8b3
+      size: 605847
     - path: data/train
       hash: md5
       md5: d751713988987e9331980363e24189ce.dir
@@ -66,8 +66,8 @@ stages:
       nfiles: 0
     - path: steps/test.py
       hash: md5
-      md5: 1cdbc8606673020ad4576b97b9d580a6
-      size: 987
+      md5: 70317c0ab13bdc20c84b378151bff130
+      size: 955
   evaluate:
     cmd: python -m steps.evaluate data/preprocess/valid.parquet
     deps:

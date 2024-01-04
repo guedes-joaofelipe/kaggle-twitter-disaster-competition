@@ -1,4 +1,7 @@
+from typing import Union
+
 import numpy as np
+from numpy.random import RandomState
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 
@@ -7,7 +10,9 @@ class RandomClassifier(BaseEstimator, ClassifierMixin):
     description = "Generates a random number on prediction"
     tags = {"framework": "sklearn"}
 
-    def __init__(self, random_state: int = 0, threshold: float = 0.5):
+    def __init__(
+        self, random_state: Union[int, RandomState, None] = 0, threshold: float = 0.5
+    ):
         self.random_state = random_state
         self.threshold = threshold
         np.random.seed(self.random_state)

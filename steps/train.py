@@ -1,20 +1,17 @@
 import os
 
 import dvc.api
-import hyperopt as hopt
+import ipdb
 import mlflow
-import numpy as np
 import pandas as pd
 import typer
 from mlflow import MlflowClient
 from mlflow.entities.model_registry import RegisteredModel
-from sklearn.base import BaseEstimator
-from sklearn.model_selection import cross_validate, train_test_split
 from sklearn.pipeline import Pipeline
 
 from src import files
-from src.decorators import mlflow_child_run, mlflow_run
-from src.models.utils import get_model
+from src.decorators import mlflow_run
+from src.trainer import Trainer
 
 
 @mlflow_run
@@ -22,134 +19,56 @@ def train(filepath: str):
     params = dvc.api.params_show()
 
     df = files.load_dataset(filepath)
+    df = df[[params["target"]] + params["features"]]
+
     mlflow.log_input(mlflow.data.from_pandas(df, source=filepath), context="train")
-
     y = df[params["target"]]
-    X = df.drop(columns=params["target"])
+    X = df[params["features"]]
 
-    experiments_results = run_experiments(df, params, X, y)
+    # ipdb.set_trace()
+    trainer = Trainer(params)
+    experiments_results = trainer.run_experiments(X, y)
 
-    mlflow.log_params(experiments_results["best_params"]["params"])
-    mlflow.log_params(experiments_results["best_params"]["hyperopt"])
-    mlflow.log_metrics(experiments_results["best_metrics"])
+    # ipdb.set_trace()
 
-    register_model(experiments_results["best_model"], params, X.head(), y.head())
-
-
-def run_experiments(df: pd.DataFrame, params: dict, X: np.ndarray, y: np.ndarray):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.33, random_state=0
-    )
-
-    Model = get_model(params["train"]["model"]["name"])
-    space = {
-        "model": Model(),
-        "params": {"model__threshold": hopt.hp.uniform("threshold", 0.5, 0.6)},
-    }
-
-    trials = hopt.Trials()
-
-    best_model_params = hopt.fmin(
-        lambda x: objective(
-            x,
-            X_train,
-            y_train,
-            metrics=params["metrics"],
-            cv=params["train"]["hyperopt"]["cross_validation"],
-            n_jobs=params["train"]["hyperopt"]["n_jobs"],
-        ),
-        space,
-        algo=hopt.tpe.suggest,
-        max_evals=params["train"]["hyperopt"]["max_evals"],
-        trials=trials,
-        verbose=False,
-    )
-    for trial_index, trial in enumerate(trials.trials):
+    for trial_index, trial in enumerate(trainer.trials):
         for metric_name, metric_value in trial["result"].items():
             if metric_name != "status":
                 mlflow.log_metric(metric_name, metric_value, step=trial_index + 1)
 
-    best_params = hopt.space_eval(space, best_model_params)
-    best_params["hyperopt"] = params["train"]["hyperopt"]
+    mlflow.log_params(experiments_results["best_params"])
+    mlflow.log_metrics(experiments_results["best_metrics"])
 
-    best_model = best_params.pop("model")
-    best_metrics = trials.best_trial["result"]
-    best_metrics.pop("status")
-
-    experiments_results = {
-        "best_model": best_model,
-        "best_params": best_params,
-        "best_metrics": best_metrics,
-    }
-
-    return experiments_results
+    register_pipeline(experiments_results["best_pipeline"], params, X.head(), y.head())
 
 
-def objective(args, X, y, metrics: dict, cv: int = 3, n_jobs: int = -1):
-    pipeline = Pipeline(
-        steps=[
-            (
-                "model",
-                args["model"],
-            )
-        ]
-    )
-
-    pipeline.set_params(**args["params"])
-
-    scoring = [metrics["loss"]] + metrics["auxiliary"]
-
-    scores = cross_validate(
-        pipeline,
-        X,
-        y,
-        scoring=scoring,
-        cv=cv,
-        n_jobs=n_jobs,
-        return_train_score=True,
-        error_score=0.99,
-    )
-
-    results = {"loss": 1 - np.mean(scores["test_" + metrics["loss"]])}
-
-    for metric_name, metric_values in scores.items():
-        results[metric_name] = np.mean(metric_values)
-
-    mlflow.log_metrics(results)
-
-    results["status"] = hopt.STATUS_OK
-
-    return results
-
-
-def register_model(
-    model: BaseEstimator,
+def register_pipeline(
+    pipeline: Pipeline,
     params: dict,
     X,
     y,
     verbose: bool = True,
 ) -> RegisteredModel:
+    model_name = pipeline.named_steps["model"].name
     client = MlflowClient()
     try:
         client.create_registered_model(
-            name=model.name,
-            tags=model.tags,
-            description=model.description,
+            name=model_name,
+            tags=pipeline.named_steps["model"].tags,
+            description=pipeline.named_steps["model"].description,
         )
 
     except Exception as e:
         print("Exception:", str(e))
 
     active_run = mlflow.active_run()
-    # parent_run = mlflow.get_parent_run(active_run.info.run_id)
-    output_folder = os.path.join(
-        active_run.info.artifact_uri, params["train"]["model"]["name"]
-    )
+
+    output_folder = os.path.join(active_run.info.artifact_uri, model_name)
     files.remove_dir(output_folder)
     signature = mlflow.models.infer_signature(X, y)
 
     mlflow.sklearn.log_model(
-        sk_model=model,
+        sk_model=pipeline,
         artifact_path=params["train"]["model"]["name"],
         signature=signature,
         input_example=X.head(),
@@ -158,7 +77,7 @@ def register_model(
     )
 
     model_info = client.create_model_version(
-        name=model.name,
+        name=model_name,
         source=output_folder,
         run_id=active_run.info.run_id,
         tags=params["train"]["version"]["tags"],
