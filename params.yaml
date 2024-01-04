@@ -19,7 +19,8 @@ train:
       random_state: 0
     path: data/train
   preprocessor:
-    vectorizer_name: tfidf
+    # vectorizer_name: tfidf
+    vectorizer_name: sbert
   version:
     tags:
       status: validation

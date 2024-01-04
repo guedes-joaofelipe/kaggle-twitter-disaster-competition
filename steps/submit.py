@@ -1,4 +1,5 @@
 import os
+import time
 
 import kaggle
 import mlflow
@@ -56,7 +57,7 @@ def submit(model_name: str, version: str):
         )
 
     if df.shape[0] == 0 or force_submission.startswith("y"):
-        if force_submission:
+        if force_submission.startswith("y"):
             print("Forcing submission")
         test_run = get_test_run(parent_run)
         predictions_filepath = os.path.join(
@@ -73,6 +74,7 @@ def submit(model_name: str, version: str):
             competition=PROJECT_COMPETITION,
             message=message,
         )
+        time.sleep(3)
         df = get_submissions(submission_filename)
     else:
         print(f"Skipping submission")
